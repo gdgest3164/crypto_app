@@ -1,5 +1,7 @@
+import { useQuery } from "react-query";
 import { Link } from "react-router-dom";
 import { styled } from "styled-components";
+import { fetchCoins } from "../api";
 
 const Container = styled.div`
     padding: 0px 20px;
@@ -23,6 +25,8 @@ const Coin = styled.li`
     a{
         transition: color 0.5s ease-in;
         display: block;
+        display: flex;
+        align-items: center;
     }
     &:hover{
         a{
@@ -36,50 +40,52 @@ const Title = styled.h1`
     color:${props => props.theme.accentColor};
 `;
 
-const coins = [{
-    id: "btc-bitcoin",
-    name: "Bitcoin",
-    symbol: "BTC",
-    rank: 1,
-    is_new: false,
-    is_active: true,
-    type: "coin",
-    },
-    {
-    id: "eth-ethereum",
-    name: "Ethereum",
-    symbol: "ETH",
-    rank: 2,
-    is_new: false,
-    is_active: true,
-    type: "coin",
-    },
-    {
-    id: "hex-hex",
-    name: "HEX",
-    symbol: "HEX",
-    rank: 3,
-    is_new: false,
-    is_active: true,
-    type: "token",
-    },
-];
+const Loader = styled.div`
+    text-align:center;
+`;
+
+const Img = styled.img`
+    width: 35px;
+    height: 35px;
+    margin-right: 10px;
+`;
+
+interface ICoin {
+    id: string,
+    name: string,
+    symbol: string,
+    rank: number,
+    is_new: boolean,
+    is_active: boolean,
+    type: string
+}
 
 function Coins(){
+    const {isLoading, data} = useQuery<ICoin[]>("allCoins", fetchCoins);
+
     return (
         <Container>
             <Header>
                 <Title>Coins</Title>
             </Header>
-            <CoinList>
-                {
-                    coins.map((coin) => (
-                        <Coin key={coin.id}>
-                            <Link to={`/${coin.id}`}>{coin.name} &rarr;</Link>
-                        </Coin>
-                    ))
-                }
-            </CoinList>
+            {isLoading ? <Loader>Loading...</Loader> : (
+                <CoinList>
+                    {
+                        data?.map((coin) => (
+                            <Coin key={coin.id}>
+                                <Link to={{
+                                    pathname: `${coin.id}`,
+                                    state: {name: coin.name},
+                                }}>
+                                    {/* <Img src={`https://coinicons-api.vercel.app/api/icon/${coin.symbol.toLowerCase()}`} /> */}
+                                    {coin.name} 
+                                    &rarr;
+                                    </Link>
+                            </Coin>
+                        ))
+                    }
+                </CoinList>
+            )}
         </Container>
     );
 }
